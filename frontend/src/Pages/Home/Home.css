@@ -1,0 +1,8 @@
+.Home{
+    display: grid;
+    grid-template-columns: 30% auto 30%;
+}
+
+.Home>div{
+    width: 100%;
+}

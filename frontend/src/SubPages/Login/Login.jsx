@@ -1,6 +1,8 @@
 import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from 'jwt-decode';
+
 import "./Login.css";
 
 const API_BASE = "http://localhost:4002/";
@@ -20,19 +22,29 @@ function Login() {
 
     const handleLogin = async (event) => {
         event.preventDefault();
+    
+        try {
+            const response = await fetch(API_BASE + "login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+    
+            if (response.ok) {
+                const { token } = await response.json();
+                localStorage.setItem('token', token); // Set token in localStorage
 
-        const response = await fetch(API_BASE + "login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        });
-
-        if (response.ok) {
-            navigate("/home"); // Navigate to the home page
-        } else {
-            console.error("Login Failed");
+                const  decodedToken = jwtDecode(token);
+                const userId = decodedToken.userId;
+                navigate("/home", { state: { userId: String(userId) }} ); // Navigate to the home page
+            } else {
+                console.error("Login Failed");
+            }
+        } catch (error) {
+            console.error("Error during login:", error);
         }
     };
+    
 
     return (
         <div className="Login">

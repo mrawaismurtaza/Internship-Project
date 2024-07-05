@@ -1,0 +1,4 @@
+.RightSide{
+    display: flex;
+    flex-direction: column;
+}

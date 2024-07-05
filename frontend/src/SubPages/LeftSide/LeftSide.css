@@ -1,0 +1,10 @@
+.LeftSide{
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.LeftSide>div{
+    width: 100%;
+    height: 100%;
+}

@@ -22,7 +22,7 @@ function Signup() {
         });
 
         if (response.ok) {
-            navigate("/home"); // Navigate to the home page
+            navigate("/login"); // Navigate to the home page
         } else {
             console.error("Signup Failed");
         }

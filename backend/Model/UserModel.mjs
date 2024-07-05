@@ -14,6 +14,16 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    followers: {
+        type: [mongoose.Schema.Types.ObjectId],  // Array of ObjectId
+        ref: 'User',
+        default: []  // Initialize as an empty array
+    },
+    following: {
+        type: [mongoose.Schema.Types.ObjectId],  // Array of ObjectId
+        ref: 'User',
+        default: []  // Initialize as an empty array
     }
 });
 
