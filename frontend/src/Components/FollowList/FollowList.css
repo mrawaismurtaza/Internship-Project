@@ -1,0 +1,5 @@
+.follow-button:hover {
+    background-color: white !important;
+    color: blue !important;
+    border-radius: 1px solid blue !important;
+}

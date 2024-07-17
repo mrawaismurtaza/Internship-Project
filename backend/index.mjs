@@ -1,10 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import connection from './db.mjs'; // Import the connection file
-import User from './Model/UserModel.mjs'; // Import the user model
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import connection from "./db.mjs";
+import User from "./Model/UserModel.mjs";
 
 dotenv.config();
 
@@ -14,147 +14,180 @@ const port = 4002;
 app.use(express.json());
 app.use(cors());
 
-// Connect to MongoDB
 connection();
 
-app.post('/signup', async (req, res) => {
-    const { email, password, username } = req.body;
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({
-            username,
-            email,
-            password: hashedPassword,
-            followers: [],
-            following: []
-        });
+app.post("/signup", async (req, res) => {
+  const { email, password, username } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      followers: [],
+      following: [],
+    });
 
-        await newUser.save();
-        res.json({ registered: true });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    await newUser.save();
+    res.json({ registered: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    try {
-        const user = await User.findOne({ email });
+  try {
+    const user = await User.findOne({ email });
 
-        if (!user) {
-            return res.status(401).json({ message: "User is not registered" });
-        }
-
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ message: "Password is incorrect" });
-        }
-
-        const token = jwt.sign({ email: user.email, userId: user._id }, process.env.JWT_SECRET || "defaultsecret", { expiresIn: '1h' });
-        res.cookie("token", token, { httpOnly: true, secure: true });
-        return res.json({ token });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (!user) {
+      return res.status(401).json({ message: "User is not registered" });
     }
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ message: "Password is incorrect" });
+    }
+
+    const token = jwt.sign(
+      { email: user.email, userId: user._id },
+      process.env.JWT_SECRET || "defaultsecret",
+      { expiresIn: "2m" }
+    );
+    res.cookie("token", token, { httpOnly: true, secure: true });
+    return res.json({ token });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Fetch the follower count for a user
-app.get('/users/:userId/followers', async (req, res) => {
+app.get("/users/:userId/followers", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).populate("followers");
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const followersCount = user.followers.length;
+    res.json({ count: followersCount });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/users/:userId/following", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).populate("following");
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const followingCount = user.following.length;
+    res.json({ count: followingCount });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select("username");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    console.log(user);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/users/:userId", async (req, res) => {
     const { userId } = req.params;
 
     try {
-        const user = await User.findById(userId).populate('followers');
-        if (!user) return res.status(404).json({ error: 'User not found' });
-
-        const followersCount = user.followers.length;
-        res.json({ count: followersCount });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Fetch the following count for a user
-app.get('/users/:userId/following', async (req, res) => {
-    const { userId } = req.params;
-
-    try {
-        const user = await User.findById(userId).populate('following');
-        if (!user) return res.status(404).json({ error: 'User not found' });
-
-        const followingCount = user.following.length;
-        res.json({ count: followingCount });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Follow a user
-app.post('/users/:userId/follow', async (req, res) => {
-    const { userId } = req.params;
-
-    try {
-        const currentUser = await User.findById(req.userId);
-        const userToFollow = await User.findById(userId);
-
-        if (!currentUser || !userToFollow) return res.status(404).json({ error: 'User not found' });
-
-        if (currentUser.following.includes(userId)) {
-            return res.status(400).json({ error: 'Already following this user' });
+        const currentUser = await User.findById(userId).populate("followers").populate("following");
+        if (!currentUser) {
+            return res.status(404).json({ message: "User not found" });
         }
 
-        currentUser.following.push(userId);
-        userToFollow.followers.push(req.userId);
+        const users = await User.find();
+        if (!users.length) {
+            return res.status(404).json({ message: "No users found" });
+        }
+
+        const booleanArray = users.map((user) => 
+            currentUser.following.some((following) => following._id.equals(user._id))
+        );
+
+        res.json({ users, booleanArray });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
+
+app.post("/follow/:user", async (req, res) => {
+    const userIdToFollow = req.params.user; 
+    const { userId } = req.body;        
+
+    try {
+        const userToFollow = await User.findById(userIdToFollow);
+        const currentUser = await User.findById(userId);
+
+        if (!userToFollow) return res.status(404).json({ error: "User to follow not found" });
+        if (!currentUser) return res.status(404).json({ error: "Current user not found" });
+
+        if (currentUser.following.includes(userToFollow._id)) {
+            return res.status(400).json({ error: "Already following this user" });
+        }
+
+        currentUser.following.push(userToFollow._id);
+        userToFollow.followers.push(currentUser._id);
 
         await currentUser.save();
         await userToFollow.save();
 
-        res.json({ message: 'Successfully followed the user' });
+        res.status(200).json({ message: "Followed successfully" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Unfollow a user
-app.post('/users/:userId/unfollow', async (req, res) => {
-    const { userId } = req.params;
+
+app.post("/unfollow/:user", async (req, res) => {
+    const userIdToUnfollow = req.params.user;
+    const { userId } = req.body;
 
     try {
-        const currentUser = await User.findById(req.userId);
-        const userToUnfollow = await User.findById(userId);
+        const userToUnfollow = await User.findById(userIdToUnfollow);
+        const currentUser = await User.findById(userId);
 
-        if (!currentUser || !userToUnfollow) return res.status(404).json({ error: 'User not found' });
-
-        if (!currentUser.following.includes(userId)) {
-            return res.status(400).json({ error: 'Not following this user' });
+        if (!userToUnfollow || !currentUser) {
+            return res.status(404).json({ error: "User not found" });
         }
 
-        currentUser.following.pull(userId);
-        userToUnfollow.followers.pull(req.userId);
+        if (currentUser.following.includes(userIdToUnfollow)) {
+            currentUser.following = currentUser.following.filter(id => id.toString() !== userIdToUnfollow);
+            userToUnfollow.followers = userToUnfollow.followers.filter(id => id.toString() !== userId);
 
-        await currentUser.save();
-        await userToUnfollow.save();
+            await currentUser.save();
+            await userToUnfollow.save();
 
-        res.json({ message: 'Successfully unfollowed the user' });
+            return res.status(200).json({ message: "Unfollowed successfully" });
+        } else {
+            return res.status(400).json({ error: "Already unfollowed this user" });
+        }
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message });
     }
 });
 
-// Fetch user profile data
-app.get("/users/:userId", async (req, res) => {
-    try {
-        const user = await User.findById(req.params.userId).select('username');
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        console.log(user)
-;        res.json(user);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });

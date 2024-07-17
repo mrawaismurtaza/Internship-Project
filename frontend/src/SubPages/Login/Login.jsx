@@ -2,6 +2,8 @@ import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from 'jwt-decode';
+import axios from "axios";
+import { toast } from "react-toastify";
 
 import "./Login.css";
 
@@ -24,24 +26,28 @@ function Login() {
         event.preventDefault();
     
         try {
-            const response = await fetch(API_BASE + "login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
+            const response = await axios.post(API_BASE + "login" , {
+                email,
+                password
+            }, {
+                headers: {
+                    "Content-Type" : "application/json"
+                }
             });
     
-            if (response.ok) {
-                const { token } = await response.json();
-                localStorage.setItem('token', token); // Set token in localStorage
+            if(response.status === 200) {
+                const { token } = response.data;
+                localStorage.setItem('token', token);
 
-                const  decodedToken = jwtDecode(token);
+                const decodedToken = jwtDecode(token);
                 const userId = decodedToken.userId;
-                navigate("/home", { state: { userId: String(userId) }} ); // Navigate to the home page
+                navigate(`/home/${userId}`);
+                toast.success('Login Successful')
             } else {
-                console.error("Login Failed");
+                toast.error("Login Failed");
             }
         } catch (error) {
-            console.error("Error during login:", error);
+            toast.error(`Enter Valid Credentials`);
         }
     };
     

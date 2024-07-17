@@ -1,83 +1,76 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import "./ProfileSection.css";
 import Logo from "../../Images/Social Web App Logo.jpeg";
-import searchIcon from "../../Images/SearchIcon.png";
 import userIcon from "../../Images/usericon.png";
+import axios from 'axios';
 
 const API_BASE = "http://localhost:4002/";
 
 function ProfileSection() {
-    const location = useLocation();
-    const { userId } = location.state || {};
+    const { userId } = useParams();
 
     const [followers, setFollowers] = useState(0);
     const [following, setFollowing] = useState(0);
     const [username, setUsername] = useState('');
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                // Fetch followers count
-                const responseFollowers = await fetch(`${API_BASE}users/${userId}/followers`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (responseFollowers.ok) {
-                    const { count } = await responseFollowers.json();
-                    setFollowers(count);
-                } else {
-                    console.error("Failed to fetch followers count");
-                }
-
-                // Fetch following count
-                const responseFollowing = await fetch(`${API_BASE}users/${userId}/following`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (responseFollowing.ok) {
-                    const { count } = await responseFollowing.json();
-                    setFollowing(count);
-                } else {
-                    console.error("Failed to fetch following count");
-                }
-
-                // Fetch user profile data
-                const responseProfile = await fetch(`${API_BASE}users/${userId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                     }
-                });
-
-                if (responseProfile.ok) {
-                    const { username } = await responseProfile.json();
-                    setUsername(username);
-                } else {
-                    console.error("Failed to fetch user profile data");
-                }
-            } catch (error) {
-                console.error("Error fetching user data:", error);
+    const fetchUserData = async (userId) => {
+        // Fetch followers count
+        const responseFollowers = await axios.get(`${API_BASE}users/${userId}/followers`, {
+            headers: {
+                'Content-Type': 'application/json',
             }
-        };
+        });
 
-        if (userId) {
-            fetchUserData();
+        if (responseFollowers.status === 200) {
+            const { count } = responseFollowers.data;
+            setFollowers(count);
+        } else {
+            console.error("Failed to fetch followers count");
         }
-    }, [userId]); // Adding userId as a dependency to useEffect
+
+        // Fetch following count
+        const responseFollowing = await axios.get(`${API_BASE}users/${userId}/following`, {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (responseFollowers.status === 200) {
+            const { count } = responseFollowing.data;
+            setFollowing(count);
+        } else {
+            console.error("Failed to fetch following count");
+        }
+
+        // Fetch user profile data
+        const responseProfile = await axios.get(`${API_BASE}user/${userId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+             }
+        });
+
+        if (responseFollowers.status === 200) {
+            const { username } = responseProfile.data;
+            setUsername(username);
+        } else {
+            console.error("Failed to fetch user profile data");
+        }
+};
+
+
+    useEffect(() => {
+        if (userId) {
+            fetchUserData(userId);
+        }
+    }, [userId]); 
 
     return (
         <div className="ProfileSection">
             <div className="LogoSearch">
                 <img src={Logo} alt="" />
                 <input type="text" />
-                <img src={searchIcon} alt="" />
+                <i class="fas fa-search fa-2x"></i>
             </div>
             <div className="ProfileImage">
                 <img src={userIcon} alt="" />

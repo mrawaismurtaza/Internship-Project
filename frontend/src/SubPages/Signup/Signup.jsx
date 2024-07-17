@@ -28,8 +28,8 @@ function Signup() {
         }
     };
 
-    return (
-        <div className="Signup">
+    return ( 
+        <div className="Signup">   
             <div className="Credentials">
                 <label htmlFor="Email" className="label">Email</label>
                 <input type="email" id="Email" name="Email" className="input" placeholder="Email..." onChange={(e) => setEmail(e.target.value)} />

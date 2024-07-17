@@ -1,0 +1,34 @@
+
+
+.photo-icon,.video-icon :hover{
+    cursor: pointer;
+}
+
+.show-image{
+    width: 100px;
+}
+
+
+.for:hover {
+cursor: pointer;
+}
+
+.i-hover:hover {
+    cursor: pointer;
+}
+
+.file-upload {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.position-relative {
+    display: inline-block;
+    width: 3em;  /* Match the size of the fa-3x icon */
+    height: 3em; /* Match the size of the fa-3x icon */
+}
