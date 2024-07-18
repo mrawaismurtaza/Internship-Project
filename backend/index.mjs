@@ -267,6 +267,33 @@ app.post("/posts/:postId/like/:userId", async (req, res) => {
 });
 
 
+
+// In your server code (e.g., app.js or routes.js)
+app.get("/leaderboard", async (req, res) => {
+  try {
+    const topUsers = await Post.aggregate([
+      { $group: { _id: "$user", postCount: { $sum: 1 } } },
+      { $sort: { postCount: -1 } },
+      { $limit: 2 },
+      { $lookup: {
+        from: "users", // Name of the user collection
+        localField: "_id",
+        foreignField: "_id",
+        as: "userDetails"
+      }},
+      { $unwind: "$userDetails" },
+      { $project: { _id: 1, postCount: 1, "userDetails.username": 1 } }
+    ]);
+
+    res.status(200).json(topUsers);
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
+  }
+});
+
+
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

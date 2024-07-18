@@ -2,6 +2,7 @@ import React from 'react'
 import "./Home.css"
 import LeftSide from '../../SubPages/LeftSide/LeftSide'
 import PostSide from '../../SubPages/PostSide/PostSide'
+import RightSide from '../../SubPages/RightSide/RightSide'
 
 function Home() {
   return (
@@ -13,7 +14,7 @@ function Home() {
         <PostSide/>
       </div>
       <div className="RightSide">
-        RightSide
+        <RightSide/>
       </div>
     </div>
   )
