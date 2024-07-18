@@ -15,6 +15,16 @@ const postSchema = new mongoose.Schema({
         ref: 'User',
         default: []
     },
+    media: {
+        imageUrl: {
+            type: String,
+            required: false
+        },
+        videoUrl: {
+            type: String,
+            required: false
+        }
+    },
     createdAt: {
         type: Date,
         default: Date.now

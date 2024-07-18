@@ -11,11 +11,11 @@ function FollowList() {
   const { userId } = useParams();
   const [booleanArray, setBooleanArray] = useState({});
 
-  console.log(userId);
+  // console.log(userId);
 
   const followUser = async (user) => {
     try {
-      console.log(user);
+      // console.log(user);
       const response = await axios.post(
         `${API}/follow/${user._id}`,
         { userId },
@@ -66,7 +66,7 @@ function FollowList() {
       });
 
       if (response.status === 200) {
-        console.log(response.data);
+        // console.log(response.data);
         setUsers(response.data.users);
         setBooleanArray(response.data.booleanArray);
       } else {

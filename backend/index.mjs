@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import connection from "./db.mjs";
 import User from "./Model/UserModel.mjs";
+import Post from "./Model/PostModel.mjs";
 
 dotenv.config();
 
@@ -186,6 +187,84 @@ app.post("/unfollow/:user", async (req, res) => {
     }
 });
 
+
+
+//Post Apis
+
+app.post("/createpost/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { description, imageUrl, videoUrl } = req.body;
+
+    const newPost = new Post({
+      user: userId,
+      description,
+      media: {
+        imageUrl,
+        videoUrl,
+      },
+      likes: [], // Initialize likes as an empty array
+    });
+
+    await newPost.save();
+    res.status(201).json(newPost);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/posts/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const posts = await Post.find({ user: { $ne: userId } }).populate("user", "username");
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+app.get("/posts/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const posts = await Post.find({ user: { $ne: userId } }).populate("user", "username"); // Exclude posts by userId and populate user field with username from User model
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+
+app.post("/posts/:postId/like/:userId", async (req, res) => {
+  try {
+    const { postId, userId } = req.params;
+    
+    // Find the post
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Check if the user has already liked the post
+    const userIndex = post.likes.indexOf(userId);
+    if (userIndex === -1) {
+      // User has not liked the post, add the userId to the likes array
+      post.likes.push(userId);
+    } else {
+      // User has already liked the post, remove the userId from the likes array
+      post.likes.splice(userIndex, 1);
+    }
+
+    await post.save();
+
+    res.status(200).json({ likes: post.likes.length });
+  } catch (error) {
+    console.error("Error liking the post:", error);
+    res.status(500).json({ error: "Failed to like the post" });
+  }
+});
 
 
 app.listen(port, () => {

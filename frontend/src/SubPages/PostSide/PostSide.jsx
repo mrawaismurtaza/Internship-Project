@@ -9,7 +9,7 @@ function PostSide() {
         <div className="card-header">
             <PublishPost/>
         </div>
-        <div className="car-body">
+        <div className="car-body posts overflow-auto">
             <Post/>
         </div>
     </div>
