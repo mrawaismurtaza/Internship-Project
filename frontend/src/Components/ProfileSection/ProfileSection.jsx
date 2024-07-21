@@ -7,87 +7,55 @@ import axios from 'axios';
 
 const API_BASE = "http://localhost:4002/";
 
-function ProfileSection() {
-    const { userId } = useParams();
+function ProfileSection({ followers, following }) {
+  const { userId } = useParams();
+  const [username, setUsername] = useState('');
 
-    const [followers, setFollowers] = useState(0);
-    const [following, setFollowing] = useState(0);
-    const [username, setUsername] = useState('');
+  const fetchUserData = async (userId) => {
+    try {
+      const responseProfile = await axios.get(`${API_BASE}user/${userId}`, {
+        headers: { "Content-Type": "application/json" }
+      });
 
-    const fetchUserData = async (userId) => {
-        // Fetch followers count
-        const responseFollowers = await axios.get(`${API_BASE}users/${userId}/followers`, {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
+      if (responseProfile.status === 200) {
+        setUsername(responseProfile.data.username);
+      } else {
+        console.error("Failed to fetch user profile data");
+      }
+    } catch (error) {
+      console.error("Error fetching user profile data:", error);
+    }
+  };
 
-        if (responseFollowers.status === 200) {
-            const { count } = responseFollowers.data;
-            setFollowers(count);
-        } else {
-            console.error("Failed to fetch followers count");
-        }
+  useEffect(() => {
+    if (userId) {
+      fetchUserData(userId);
+    }
+  }, [userId]);
 
-        // Fetch following count
-        const responseFollowing = await axios.get(`${API_BASE}users/${userId}/following`, {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-
-        if (responseFollowers.status === 200) {
-            const { count } = responseFollowing.data;
-            setFollowing(count);
-        } else {
-            console.error("Failed to fetch following count");
-        }
-
-        // Fetch user profile data
-        const responseProfile = await axios.get(`${API_BASE}user/${userId}`, {
-            headers: {
-                'Content-Type': 'application/json',
-             }
-        });
-
-        if (responseFollowers.status === 200) {
-            const { username } = responseProfile.data;
-            setUsername(username);
-        } else {
-            console.error("Failed to fetch user profile data");
-        }
-};
-
-
-    useEffect(() => {
-        if (userId) {
-            fetchUserData(userId);
-        }
-    }, [userId]); 
-
-    return (
-        <div className="ProfileSection">
-            <div className="LogoSearch">
-                <img src={Logo} alt="" />
-                <input type="text" />
-                <i class="fas fa-search fa-2x"></i>
-            </div>
-            <div className="ProfileImage">
-                <img src={userIcon} alt="" />
-                <p>{username}</p>
-            </div>
-            <div className="Count">
-                <div className="Followers">
-                    <p>{followers}</p>
-                    <p>Followers</p>
-                </div>
-                <div className="Following">
-                    <p>{following}</p>
-                    <p>Following</p>
-                </div>
-            </div>
+  return (
+    <div className="ProfileSection">
+      <div className="LogoSearch">
+        <img src={Logo} alt="" />
+        <input type="text" />
+        <i className="fas fa-search fa-2x"></i>
+      </div>
+      <div className="ProfileImage">
+        <img src={userIcon} alt="" />
+        <p>{username}</p>
+      </div>
+      <div className="Count">
+        <div className="Followers">
+          <p>{followers}</p>
+          <p>Followers</p>
         </div>
-    );
+        <div className="Following">
+          <p>{following}</p>
+          <p>Following</p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default ProfileSection;

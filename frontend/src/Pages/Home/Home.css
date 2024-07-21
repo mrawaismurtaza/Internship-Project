@@ -6,3 +6,13 @@
 .Home>div{
     width: 100%;
 }
+
+
+@media only screen and (max-width: 600px) {
+
+    .Home{
+        display: flex;
+        flex-direction: column;
+    }
+    
+}

@@ -106,28 +106,29 @@ app.get("/user/:userId", async (req, res) => {
 });
 
 app.get("/users/:userId", async (req, res) => {
-    const { userId } = req.params;
+  const { userId } = req.params;
 
-    try {
-        const currentUser = await User.findById(userId).populate("followers").populate("following");
-        if (!currentUser) {
-            return res.status(404).json({ message: "User not found" });
-        }
+  try {
+      const currentUser = await User.findById(userId).populate("followers").populate("following");
+      if (!currentUser) {
+          return res.status(404).json({ message: "User not found" });
+      }
 
-        const users = await User.find();
-        if (!users.length) {
-            return res.status(404).json({ message: "No users found" });
-        }
+      const users = await User.find({ _id: { $ne: userId } });
+      if (!users.length) {
+          return res.status(404).json({ message: "No users found" });
+      }
 
-        const booleanArray = users.map((user) => 
-            currentUser.following.some((following) => following._id.equals(user._id))
-        );
+      const booleanArray = users.map((user) => 
+          currentUser.following.some((following) => following._id.equals(user._id))
+      );
 
-        res.json({ users, booleanArray });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+      res.json({ users, booleanArray });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
 });
+
 
 
 

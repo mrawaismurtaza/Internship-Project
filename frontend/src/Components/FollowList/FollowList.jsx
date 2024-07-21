@@ -6,29 +6,23 @@ import { toast } from "react-toastify";
 
 const API = "http://localhost:4002";
 
-function FollowList() {
+function FollowList({ onUpdate }) {
   const [users, setUsers] = useState([]);
   const { userId } = useParams();
   const [booleanArray, setBooleanArray] = useState({});
 
-  // console.log(userId);
-
   const followUser = async (user) => {
     try {
-      // console.log(user);
       const response = await axios.post(
         `${API}/follow/${user._id}`,
         { userId },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
       if (response.status === 200) {
         toast.success(`Successfully Followed`);
         fetchFollowerList();
+        onUpdate(); // Update counts
       }
     } catch {
       toast.error(`Follow Unsuccessful`);
@@ -37,36 +31,29 @@ function FollowList() {
 
   const unFollowUser = async (user) => {
     try {
-        const response = await axios.post(
-            `${API}/unfollow/${user._id}`,
-            { userId },
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+      const response = await axios.post(
+        `${API}/unfollow/${user._id}`,
+        { userId },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-        if (response.status === 200) {
-            toast.success(`Successfully unfollowed`);
-            fetchFollowerList();
-        }
+      if (response.status === 200) {
+        toast.success(`Successfully Unfollowed`);
+        fetchFollowerList();
+        onUpdate(); // Update counts
+      }
     } catch (error) {
-        toast.error(`Unfollow unsuccessful: ${error.response?.data?.error || error.message}`);
+      toast.error(`Unfollow Unsuccessful: ${error.response?.data?.error || error.message}`);
     }
-};
-
+  };
 
   const fetchFollowerList = async () => {
     try {
       const response = await axios.get(`${API}/users/${userId}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" }
       });
 
       if (response.status === 200) {
-        // console.log(response.data);
         setUsers(response.data.users);
         setBooleanArray(response.data.booleanArray);
       } else {
@@ -79,7 +66,7 @@ function FollowList() {
 
   useEffect(() => {
     fetchFollowerList();
-  });
+  }, []);
 
   return (
     <div className="list-group">
@@ -91,7 +78,7 @@ function FollowList() {
           <div className="p-1 bd-highlight">
             {booleanArray[index] ? (
               <button className="btn btn-light btn-sm border border-primary text-primary"
-              onClick={() => unFollowUser(user)}>
+                onClick={() => unFollowUser(user)}>
                 Followed
               </button>
             ) : (
